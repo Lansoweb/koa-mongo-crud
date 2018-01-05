@@ -6,4 +6,5 @@ module.exports = {
   ResponseTimeMiddleware: require('./middleware/response-time'),
   ErrorMiddleware:  require('./middleware/error'),
   AuthMiddleware:  require('./middleware/auth')
+  ApiServer:  require('./server')
 };
