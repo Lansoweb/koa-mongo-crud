@@ -60,6 +60,18 @@ exports.delete = (mapper) => {
   }
 }
 
+exports.remove = (mapper) => {
+  return async(ctx) =>
+  {
+    const result = await mapper.remove(ctx.params.id);
+    if (result === null || result.n === 0) {
+      ctx.throw(Status.NOT_FOUND, 'Entity not found');
+    }
+    ctx.status = Status.NO_CONTENT;
+    ctx.body = null;
+  }
+}
+
 exports.update = (mapper) => {
   return async(ctx) =>
   {

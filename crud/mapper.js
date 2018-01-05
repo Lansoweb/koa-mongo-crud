@@ -97,27 +97,30 @@ class CrudMapper {
       filter.deleted = { $ne: true };
     }
 
-    let entity = await this.collection.findOne(filter);
-
-    if (entity === null) {
-      return null;
-    }
-
     post = this.validate(post);
     let data = this.toDatabase(post);
     data.updatedAt = new Date();
-    entity = Object.assign(entity, data);
-    await this.collection.updateOne({ _id: new mongo.ObjectID(id) }, { $set: data }, { upsert: false });
-    return entity;
+
+    let update = {}
+    if (data.deleted !== true) {
+      delete data.deleted;
+      delete data.deletedAt;
+      delete data.deletedBy;
+      update = { $set: data, $unset: {deleted: "", deletedAt: "", deletedBy: ""} };
+    } else {
+      data.deleted = true;
+      data.deletedAt = new Date();
+      update = { $set: data };
+    }
+
+    const result = await this.collection.findOneAndUpdate(filter, update, { returnOriginal: false, upsert: false });
+    if (result.ok !== 1) {
+      return null;
+    }
+    return result.value;
   }
 
   async delete(id, userId = null) {
-    let entity = await this.collection
-      .findOne({ _id: new mongo.ObjectID(id), deleted: { $ne: true } });
-
-    if (entity === null) {
-      return null;
-    }
 
     let data = {
       deleted: true,
@@ -126,22 +129,27 @@ class CrudMapper {
     if (userId !== null) {
       data.deletedBy = userId;
     }
-    entity = Object.assign(entity, data);
-    await this.collection.updateOne({ _id: new mongo.ObjectID(id) }, { $set: data }, { upsert: false });
-    return entity;
+
+    const result = await this.collection.findOneAndUpdate(
+      { _id: new mongo.ObjectID(id), deleted: { $ne: true } },
+      { $set: data },
+      { returnOriginal: false, upsert: false }
+    );
+
+    if (result.ok !== 1) {
+      return null;
+    }
+
+    return result.value;
   }
 
   async remove(id) {
 
     let filter = { _id: new mongo.ObjectID(id) };
 
-    let entity = await this.collection.findOne(filter);
+    const result = await this.collection.findOneAndDelete(filter);
 
-    if (entity === null) {
-      return null;
-    }
-
-    await this.collection.deleteOne({ _id: new mongo.ObjectID(id) });
+    return result.ok === 1;
   }
 
   toJson(data) {
@@ -237,6 +245,10 @@ class CrudMapper {
     if (validateAll === false) {
       delete schema.required;
     }
+
+    schema.properties['deleted'] = { type: 'boolean', default: false};
+    schema.properties['deletedAt'] = { type: 'string', format: 'date-time'};
+    schema.properties['deletedBy'] = { type: ['string', 'null']};
 
     let valid = ajv.validate(schema, data);
 
