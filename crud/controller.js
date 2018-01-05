@@ -4,7 +4,7 @@ const ValidationException = require('./validation-exception');
 exports.list = (mapper) => {
   return async(ctx) =>
   {
-    const result = await mapper.list(ctx.request.query, ctx.query.deleted || ctx.query.disabled);
+    const result = await mapper.list(ctx.request.query);
     ctx.body = mapper.toHalCollection(result, ctx);
     ctx.status = 200;
   }

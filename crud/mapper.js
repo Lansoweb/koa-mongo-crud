@@ -4,14 +4,6 @@ const hal = require('hal');
 const queryString = require('query-string');
 const mongo = require('mongodb');
 const MongoQF = require('./mongodb-query-filter');
-const qf = new MongoQF({
-  custom: {
-    between: 'updatedAt',
-    after: 'updatedAt',
-    before: 'updatedAt'
-  },
-  blacklist: {fields: 1, page: 1, sort: 1, order: 1}
-});
 const ajv = require('ajv')({
   removeAdditional: true,
   allErrors: true
@@ -26,10 +18,21 @@ class CrudMapper {
     this.listRoute = listRoute;
     this.schema = schema;
     this.pageSize = 25;
+    this.queryFilter = createQueryFilter(schema);
   }
 
-  async list(params, withCount = false) {
-    const query = qf.parse(params);
+  async list(paramsOrig) {
+
+    let params = JSON.parse(JSON.stringify(paramsOrig))
+
+    const withDeleted = params.deleted || params.disabled || false;
+    const withCount = params._count || false;
+
+    if (params.deleted != true) {
+      params.deleted = { $ne: true };
+    }
+
+    const query = this.queryFilter.parse(params);
 
     params.fields = params.fields || '';
     const fields = params.fields.split(',');
@@ -55,10 +58,8 @@ class CrudMapper {
       page: page,
     };
 
-    if (withCount === true) {
-      const count = await this.collection
-        .find(query)
-        .count();
+    if (withCount == true) {
+      const count = await this.collection.find(query).count();
       result['count'] = count;
       result['page_count'] = Math.ceil(count / list.length);
     }
@@ -247,6 +248,24 @@ class CrudMapper {
   validateAll(data) {
     return this.validate(data, true)
   }
+}
+
+function createQueryFilter(schema) {
+  if (schema.hasOwnProperty('searchable') === false) {
+    schema.searchable = Object.keys(schema.properties);
+  }
+  let whitelist = {};
+  schema.searchable.forEach((key) => {
+    whitelist[key] = 1;
+  });
+  return new MongoQF({
+    custom: {
+      between: 'updatedAt',
+      after: 'updatedAt',
+      before: 'updatedAt'
+    },
+    whitelist: whitelist,
+  });
 }
 
 module.exports = CrudMapper;
