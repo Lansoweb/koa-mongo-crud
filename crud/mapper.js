@@ -28,11 +28,13 @@ class CrudMapper {
     const withDeleted = params.deleted || params.disabled || false;
     const withCount = params._count || false;
 
-    if (params.deleted != true) {
-      params.deleted = { $ne: true };
-    }
-
     const query = this.queryFilter.parse(params);
+
+    if (withDeleted === '1' || withDeleted === 'true') {
+      delete query.deleted;
+    } else {
+      query.deleted = { $ne: true };
+    }
 
     params.fields = params.fields || '';
     const fields = params.fields.split(',');
