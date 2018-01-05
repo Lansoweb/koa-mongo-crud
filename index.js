@@ -5,6 +5,6 @@ module.exports = {
   ValidationException: require('./crud/validation-exception'),
   ResponseTimeMiddleware: require('./middleware/response-time'),
   ErrorMiddleware:  require('./middleware/error'),
-  AuthMiddleware:  require('./middleware/auth')
+  AuthMiddleware:  require('./middleware/auth'),
   ApiServer:  require('./server')
 };
