@@ -5,7 +5,7 @@ const ErrorMiddleware = require('./middleware/error');
 const AuthMiddleware = require('./middleware/auth');
 const ResponseTimeMiddleware = require('./middleware/response-time');
 
-module.exports = (config) => {
+module.exports = (config, callback) => {
 
   const app = new Koa();
 
@@ -20,7 +20,7 @@ module.exports = (config) => {
 
   require("./infra/mongo")(config.db, app.logger, (connection) => {
 
-    app.db = connection.db(config.dbName);
+    app.db = connection.db(config.db.dbName);
 
     if (typeof callback === 'function') {
       callback(app);
