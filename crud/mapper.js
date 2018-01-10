@@ -11,14 +11,15 @@ const ajv = require('ajv')({
 
 class CrudMapper {
 
-  constructor(collection, collectionName, detailRoute, listRoute, schema) {
-    this.collection = collection;
-    this.collectionName = collectionName;
-    this.detailRoute = detailRoute;
-    this.listRoute = listRoute;
+  constructor(db, schema, options = {}) {
     this.schema = schema;
+    this.collectionName = options.collectionName || schema.collectionName;
+    this.collection = db.collection(this.collectionName);
+    this.detailRoute = options.detailRoute || schema.name+'.detail';
+    this.listRoute = options.listRoute || schema.name+'.list';
     this.pageSize = 25;
     this.queryFilter = createQueryFilter(schema);
+    this.useMongoId = options.useMongoId || true;
   }
 
   async list(paramsOrig) {
@@ -60,7 +61,7 @@ class CrudMapper {
       page: page,
     };
 
-    if (withCount == true) {
+    if (withCount === '1' || withCount === 'true' || withCount === true) {
       const count = await this.collection.find(query).count();
       result['count'] = count;
       result['page_count'] = Math.ceil(count / list.length);
@@ -71,7 +72,7 @@ class CrudMapper {
 
   async detail(id, withDeleted = false) {
 
-    let filter = { _id: new mongo.ObjectID(id) };
+    let filter = { _id: this.useMongoId === true ? new mongo.ObjectID(id) : id };
 
     if (withDeleted === false) {
       filter.deleted = { $ne: true };
@@ -91,7 +92,7 @@ class CrudMapper {
 
   async update(id, post, withDeleted = false) {
 
-    let filter = { _id: new mongo.ObjectID(id) };
+    let filter = { _id: this.useMongoId === true ? new mongo.ObjectID(id) : id };
 
     if (withDeleted === false) {
       filter.deleted = { $ne: true };
@@ -131,7 +132,7 @@ class CrudMapper {
     }
 
     const result = await this.collection.findOneAndUpdate(
-      { _id: new mongo.ObjectID(id), deleted: { $ne: true } },
+      { _id: this.useMongoId === true ? new mongo.ObjectID(id) : id, deleted: { $ne: true } },
       { $set: data },
       { returnOriginal: false, upsert: false }
     );
@@ -145,7 +146,7 @@ class CrudMapper {
 
   async remove(id) {
 
-    let filter = { _id: new mongo.ObjectID(id) };
+    let filter = { _id: this.useMongoId === true ? new mongo.ObjectID(id) : id };
 
     const result = await this.collection.findOneAndDelete(filter);
 
@@ -268,7 +269,7 @@ function createQueryFilter(schema) {
   if (schema.hasOwnProperty('searchable') === false) {
     schema.searchable = Object.keys(schema.properties);
   }
-  let whitelist = {};
+  let whitelist = {after:1, before: 1, between: 1};
   schema.searchable.forEach((key) => {
     whitelist[key] = 1;
   });

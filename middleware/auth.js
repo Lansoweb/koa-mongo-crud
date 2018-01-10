@@ -3,6 +3,10 @@ const auth = require('basic-auth');
 
 module.exports = (config) => {
   return async (ctx, next) => {
+    if (config.length === 0) {
+      return next();
+    }
+
     let credentials = auth(ctx.request);
 
     let authenticated = false;
