@@ -19,7 +19,7 @@ class CrudMapper {
     this.listRoute = options.listRoute || schema.name+'.list';
     this.pageSize = 25;
     this.queryFilter = createQueryFilter(schema);
-    this.useMongoId = options.useMongoId || true;
+    this.useMongoId = options.hasOwnProperty('useMongoId') ? options.useMongoId : true;
   }
 
   async list(paramsOrig) {
