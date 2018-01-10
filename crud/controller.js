@@ -1,5 +1,6 @@
 const Status = require('http-status');
 const ValidationException = require('./validation-exception');
+const DuplicationException = require('./duplication-exception');
 
 exports.list = (mapper) => {
   return async(ctx) =>
@@ -19,20 +20,13 @@ exports.create = (mapper) => {
     } catch (e) {
       if (e instanceof ValidationException) {
         ctx.throw(Status.UNPROCESSABLE_ENTITY, {message: e.errors});
-        ctx.body = e.errors;
-        ctx.status = Status.UNPROCESSABLE_ENTITY;
+        return;
+      } else if (e instanceof DuplicationException) {
+        ctx.throw(Status.CONFLICT, {message: 'There is an entity with this ' + e.errors});
         return;
       }
       throw e;
     }
-  }
-}
-
-exports.update = (mapper) => {
-  return async (ctx) => {
-    const result = await mapper.update(ctx.request.body, ctx.query.deleted || ctx.query.disabled);
-    ctx.body = mapper.toHal(result, ctx.router);
-    ctx.status = Status.OK;
   }
 }
 
@@ -75,11 +69,23 @@ exports.remove = (mapper) => {
 exports.update = (mapper) => {
   return async(ctx) =>
   {
-    const result = await mapper.update(ctx.params.id, ctx.request.body, ctx.query.deleted || ctx.query.disabled);
-    if (result === null) {
-      ctx.throw(Status.NOT_FOUND, 'Entity not found');
+    try {
+      const result = await mapper.update(ctx.params.id, ctx.request.body, ctx.query.deleted || ctx.query.disabled);
+      if (result === null) {
+        ctx.throw(Status.NOT_FOUND, 'Entity not found');
+        return;
+      }
+      ctx.body = mapper.toHal(result, ctx.router);
+      ctx.status = Status.OK;
+    } catch (e) {
+      if (e instanceof ValidationException) {
+        ctx.throw(Status.UNPROCESSABLE_ENTITY, {message: e.errors});
+        return;
+      } else if (e instanceof DuplicationException) {
+        ctx.throw(Status.CONFLICT, {message: 'There is an entity with this ' + e.errors});
+        return;
+      }
+      throw e;
     }
-    ctx.body = mapper.toHal(result, ctx.router);
-    ctx.status = Status.OK;
   }
 }

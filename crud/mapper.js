@@ -1,5 +1,6 @@
 
 const ValidationException = require('./validation-exception');
+const DuplicationException = require('./duplication-exception');
 const hal = require('hal');
 const queryString = require('query-string');
 const mongo = require('mongodb');
@@ -20,6 +21,10 @@ class CrudMapper {
     this.pageSize = 25;
     this.queryFilter = createQueryFilter(schema);
     this.useMongoId = options.hasOwnProperty('useMongoId') ? options.useMongoId : true;
+
+    if (this.schema.hasOwnProperty('unique') === false) {
+      this.schema.unique = [];
+    }
   }
 
   async list(paramsOrig) {
@@ -84,10 +89,64 @@ class CrudMapper {
   async create(post) {
     post = this.validateAll(post);
     let data = this.toDatabase(post);
+
+    await this.checkUniqueness(data);
+
     data.createdAt = new Date();
     data.updatedAt = data.createdAt;
     await this.collection.insertOne(data);
     return data;
+  }
+
+  async checkUniqueness(data, id = null) {
+    if (this.schema.unique.length > 0) {
+      let orFilter = [];
+      this.schema.unique.forEach((key) => {
+        if (data.hasOwnProperty(key)) {
+          if (typeof data[key] === 'object') {
+            data[key].forEach((value) => {
+              let obj = {};
+              obj[key] = value;
+              orFilter.push(obj);
+            });
+          } else {
+            let obj = {};
+            obj[key] = data[key];
+            orFilter.push(obj);
+          }
+        }
+      });
+      if (orFilter.length === 0) {
+        return;
+      }
+      let filter = { $or: orFilter, deleted: { $ne: true } };
+      if (id !== null) {
+        filter['_id'] = { $ne : id };
+      }
+      const list = await this.collection.find(filter).toArray();
+      if (list.length === 0) {
+        return;
+      }
+      let message = [];
+      list.forEach((json) => {
+        this.schema.unique.forEach((key) => {
+          if (data.hasOwnProperty(key) && json.hasOwnProperty(key)) {
+            if (typeof data[key] === 'object') {
+              data[key].forEach((dataValue) => {
+                json[key].forEach((jsonValue) => {
+                  if (jsonValue === dataValue) {
+                    message.push(key);
+                  }
+                });
+              });
+            } else if (data[key] === json[key]) {
+              message.push(key);
+            }
+          }
+        });
+      });
+      throw new DuplicationException(message.filter((v, i, a) => a.indexOf(v) === i));
+    }
   }
 
   async update(id, post, withDeleted = false) {
@@ -100,6 +159,9 @@ class CrudMapper {
 
     post = this.validate(post);
     let data = this.toDatabase(post);
+
+    await this.checkUniqueness(data, id);
+
     data.updatedAt = new Date();
 
     let update = {}
