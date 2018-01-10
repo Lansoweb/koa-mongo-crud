@@ -1,9 +1,10 @@
 
+const hal = require('hal');
+const mongo = require('mongodb');
+const queryString = require('query-string');
 const ValidationException = require('./validation-exception');
 const DuplicationException = require('./duplication-exception');
-const hal = require('hal');
-const queryString = require('query-string');
-const mongo = require('mongodb');
+const Uuid = require('../infra/uuid');
 const MongoQF = require('./mongodb-query-filter');
 const ajv = require('ajv')({
   removeAdditional: true,
@@ -20,7 +21,6 @@ class CrudMapper {
     this.listRoute = options.listRoute || schema.name+'.list';
     this.pageSize = 25;
     this.queryFilter = createQueryFilter(schema);
-    this.useMongoId = options.hasOwnProperty('useMongoId') ? options.useMongoId : true;
 
     if (this.schema.hasOwnProperty('unique') === false) {
       this.schema.unique = [];
@@ -77,7 +77,7 @@ class CrudMapper {
 
   async detail(id, withDeleted = false) {
 
-    let filter = { _id: this.useMongoId === true ? new mongo.ObjectID(id) : id };
+    let filter = { _id: id };
 
     if (withDeleted === false) {
       filter.deleted = { $ne: true };
@@ -92,6 +92,7 @@ class CrudMapper {
 
     await this.checkUniqueness(data);
 
+    data._id = Uuid.v4c();
     data.createdAt = new Date();
     data.updatedAt = data.createdAt;
     await this.collection.insertOne(data);
@@ -151,7 +152,7 @@ class CrudMapper {
 
   async update(id, post, withDeleted = false) {
 
-    let filter = { _id: this.useMongoId === true ? new mongo.ObjectID(id) : id };
+    let filter = { _id: id };
 
     if (withDeleted === false) {
       filter.deleted = { $ne: true };
@@ -194,7 +195,7 @@ class CrudMapper {
     }
 
     const result = await this.collection.findOneAndUpdate(
-      { _id: this.useMongoId === true ? new mongo.ObjectID(id) : id, deleted: { $ne: true } },
+      { _id: id, deleted: { $ne: true } },
       { $set: data },
       { returnOriginal: false, upsert: false }
     );
@@ -208,7 +209,7 @@ class CrudMapper {
 
   async remove(id) {
 
-    let filter = { _id: this.useMongoId === true ? new mongo.ObjectID(id) : id };
+    let filter = { _id: id };
 
     const result = await this.collection.findOneAndDelete(filter);
 

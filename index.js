@@ -8,5 +8,6 @@ module.exports = {
   ErrorMiddleware:  require('./middleware/error'),
   NewRelicMiddleware:  require('./middleware/newrelic'),
   AuthMiddleware:  require('./middleware/auth'),
-  ApiServer:  require('./server')
+  ApiServer:  require('./server'),
+  Uuid: require('./infra/uuid')
 };

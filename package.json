@@ -10,13 +10,15 @@
   "dependencies": {
     "ajv": "6.0.0",
     "basic-auth": "2.0.0",
+    "crypto": "1.0.1",
     "hal": "1.2.0",
     "http-status": "1.0.1",
     "koa": "2.4.1",
     "koa-helmet": "3.3.0",
     "log4js": "2.4.1",
     "mongodb": "2.2.34",
-    "query-string": "5.0.1"
+    "query-string": "5.0.1",
+    "uuid": "3.1.0"
   },
   "keywords": [
     "koa",
