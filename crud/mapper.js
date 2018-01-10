@@ -92,7 +92,9 @@ class CrudMapper {
 
     await this.checkUniqueness(data);
 
+    // if (data.hasOwnProperty('_id') === false) {
     data._id = Uuid.v4c();
+    // }
     data.createdAt = new Date();
     data.updatedAt = data.createdAt;
     await this.collection.insertOne(data);
