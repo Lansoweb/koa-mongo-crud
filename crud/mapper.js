@@ -1,6 +1,5 @@
 
 const hal = require('hal');
-const mongo = require('mongodb');
 const queryString = require('query-string');
 const ValidationException = require('./validation-exception');
 const DuplicationException = require('./duplication-exception');
@@ -93,7 +92,7 @@ class CrudMapper {
     await this.checkUniqueness(data);
 
     // if (data.hasOwnProperty('_id') === false) {
-    data._id = Uuid.v4c();
+    data._id = CrudMapper.generateUuid();
     // }
     data.createdAt = new Date();
     data.updatedAt = data.createdAt;
@@ -298,10 +297,10 @@ class CrudMapper {
 
   toDatabase(entity) {
     let data = entity;
-    if (data.id) {
+    if (data.hasOwnProperty('id')) {
       data._id = data.id;
+      delete data.id;
     }
-    delete data.id;
     return data;
   }
 
@@ -327,6 +326,14 @@ class CrudMapper {
 
   validateAll(data) {
     return this.validate(data, true)
+  }
+
+  static generateUuid() {
+    return Uuid.v4c();
+  }
+
+  getUUID() {
+    return CrudMapper.generateUuid();
   }
 }
 

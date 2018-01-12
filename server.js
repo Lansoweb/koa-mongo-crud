@@ -34,4 +34,5 @@ module.exports = (config, callback) => {
     });
 
   });
+  return app;
 };
