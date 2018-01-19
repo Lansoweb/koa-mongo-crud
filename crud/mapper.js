@@ -32,6 +32,10 @@ class CrudMapper {
 
     const withDeleted = params.deleted || params.disabled || false;
     const withCount = params._count || false;
+    const sortBy = params.sort || 'createdAt';
+    const orderBy = parseInt(params.order || -1);
+    const sort = {};
+    sort[sortBy] = orderBy;
 
     const query = this.queryFilter.parse(params);
 
@@ -57,7 +61,7 @@ class CrudMapper {
       .project(project)
       .limit(this.pageSize)
       .skip(skip)
-      .sort({createdAt: -1})
+      .sort(sort)
       .toArray();
 
     let result = {
