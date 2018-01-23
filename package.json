@@ -1,6 +1,6 @@
 {
   "name": "koa-mongo-crud",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "Base API for CRUD using koa and mongo",
   "main": "index.js",
   "repository": "git@github.com:Lansoweb/koa-mongo-crud.git",
