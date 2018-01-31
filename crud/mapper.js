@@ -32,6 +32,7 @@ class CrudMapper {
 
     const withDeleted = params.deleted || params.disabled || false;
     const withCount = params._count || false;
+    const pageSize = parseInt(params._pageSize || this.pageSize);
     const sortBy = params.sort || 'createdAt';
     const orderBy = parseInt(params.order || -1);
     const sort = {};
@@ -54,12 +55,12 @@ class CrudMapper {
       }
     });
     const page = parseInt(params.page || 1);
-    const skip = (page - 1) * this.pageSize;
+    const skip = (page - 1) * pageSize;
 
     const list = await this.collection
       .find(query)
       .project(project)
-      .limit(this.pageSize)
+      .limit(pageSize)
       .skip(skip)
       .sort(sort)
       .toArray();
