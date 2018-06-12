@@ -26,8 +26,7 @@ class CrudMapper {
     }
   }
 
-  async list(paramsOrig) {
-
+  async list(paramsOrig, aggregateParam) {
     let params = JSON.parse(JSON.stringify(paramsOrig))
 
     const withDeleted = params.deleted || params.disabled || false;
@@ -54,16 +53,27 @@ class CrudMapper {
         project[field] = 1;
       }
     });
+
     const page = parseInt(params.page || 1);
     const skip = (page - 1) * pageSize;
 
-    const list = await this.collection
-      .find(query)
-      .project(project)
-      .limit(pageSize)
-      .skip(skip)
-      .sort(sort)
-      .toArray();
+    let list = null;
+    if (aggregateParam) {
+      list = await this.collection.aggregate().lookup(aggregateParam)
+        .match(query)
+        .limit(pageSize)
+        .skip(skip)
+        .sort(sort)
+        .toArray();
+    } else {
+      list = await this.collection
+        .find(query)
+        .project(project)
+        .limit(pageSize)
+        .skip(skip)
+        .sort(sort)
+        .toArray();
+    }
 
     let result = {
       result: list,
