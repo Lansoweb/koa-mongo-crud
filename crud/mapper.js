@@ -366,9 +366,6 @@ class CrudMapper {
       } else {
         if (key === x) {
           data[x] = new Date(data[x]);
-          /*if (moment(data[x], moment.ISO_8601).isValid()) {
-            data[x] = moment(data[x]).toDate();
-          }*/
         }
       }
     }
