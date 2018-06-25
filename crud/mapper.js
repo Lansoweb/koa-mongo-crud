@@ -316,6 +316,9 @@ class CrudMapper {
       data._id = data.id;
       delete data.id;
     }
+
+    this.checkDates(this.schema.properties, data);
+
     return data;
   }
 
@@ -349,6 +352,44 @@ class CrudMapper {
 
   getUUID() {
     return CrudMapper.generateUuid();
+  }
+
+  /**
+   * Sets the Date fields
+   * @param {[type]} data Current Data
+   * @param {[type]} key  Data key name where Date type must be set on
+   */
+  setDates(data, key) {
+    for (let x in data) {      
+      if (typeof data[x] === "object") {
+        this.setDates(data[x], key)
+      } else {
+        if (key === x) {
+          data[x] = new Date(data[x]);
+          /*if (moment(data[x], moment.ISO_8601).isValid()) {
+            data[x] = moment(data[x]).toDate();
+          }*/
+        }
+      }
+    }
+  }
+
+  /**
+   * Check for instanceOf Date fields
+   * @param  {[type]} schemaProperties Current schema
+   * @param  {[type]} data             Current data
+   * @return {[type]}                  [description]
+   */
+  checkDates(schemaProperties, data) {
+    for (let k in schemaProperties) {
+      if (typeof schemaProperties[k] === "object" && schemaProperties[k].type && schemaProperties[k].type === 'array') {
+        this.checkDates(schemaProperties[k].items.properties, data);
+      } else {
+        if (schemaProperties[k].instanceOf && schemaProperties[k].instanceOf === 'Date') {
+          this.setDates(data, k);
+        }
+      }
+    }
   }
 }
 
