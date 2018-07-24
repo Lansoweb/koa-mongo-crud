@@ -5,6 +5,7 @@ const ValidationException = require('./validation-exception');
 const DuplicationException = require('./duplication-exception');
 const Uuid = require('../infra/uuid');
 const MongoQF = require('./mongodb-query-filter');
+const moment = require('moment');
 const ajv = require('ajv')({
   removeAdditional: true,
   allErrors: true
@@ -44,6 +45,8 @@ class CrudMapper {
     } else {
       query.deleted = { $ne: true };
     }
+
+    this.checkDates(this.schema.properties, query);
 
     params.fields = params.fields || '';
     const fields = params.fields.split(',');
@@ -364,7 +367,7 @@ class CrudMapper {
       if (typeof data[x] === "object") {
         this.setDates(data[x], key)
       } else {
-        if (key === x) {
+        if (key === x || moment(data[x], moment.ISO_8601, true).isValid()) {
           data[x] = new Date(data[x]);
         }
       }
