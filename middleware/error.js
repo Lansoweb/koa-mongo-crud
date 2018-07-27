@@ -12,7 +12,7 @@ module.exports = async (ctx, next) => {
       type: 'https://httpstatuses.com/' + ctx.status,
       title: Status[ctx.status],
       status: ctx.status,
-      detail: err.message
+      detail: err.message || err.errors
     };
   }
 };
