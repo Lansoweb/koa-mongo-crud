@@ -27,12 +27,12 @@ class CrudMapper {
     }
   }
 
-  async list(paramsOrig, aggregateParam) {
+ async list(paramsOrig, aggregateParam) {
     let params = JSON.parse(JSON.stringify(paramsOrig))
 
     const withDeleted = params.deleted || params.disabled || false;
     const withCount = params._count || false;
-    const pageSize = parseInt(params._pageSize || this.pageSize);
+    let pageSize = parseInt(params._pageSize || this.pageSize);
     const sortBy = params.sort || 'createdAt';
     const orderBy = parseInt(params.order || -1);
     const sort = {};
@@ -46,8 +46,6 @@ class CrudMapper {
       query.deleted = { $ne: true };
     }
 
-    this.checkDates(this.schema.properties, query);
-
     params.fields = params.fields || '';
     const fields = params.fields.split(',');
     let project = {};
@@ -57,8 +55,14 @@ class CrudMapper {
       }
     });
 
-    const page = parseInt(params.page || 1);
-    const skip = (page - 1) * pageSize;
+    const page = parseInt(params.page || 0);
+    let skip = pageSize * page;
+
+    if (aggregateParam && page > 0) {
+      let aux = pageSize;
+      pageSize = (page + 1) * pageSize;
+      skip = pageSize - aux;
+    }
 
     let list = null;
     if (aggregateParam) {
