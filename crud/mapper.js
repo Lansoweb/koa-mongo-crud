@@ -46,6 +46,8 @@ class CrudMapper {
       query.deleted = { $ne: true };
     }
 
+    this.checkDates(this.schema.properties, query);
+
     params.fields = params.fields || '';
     const fields = params.fields.split(',');
     let project = {};
