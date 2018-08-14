@@ -373,7 +373,7 @@ class CrudMapper {
       if (typeof data[x] === "object") {
         this.setDates(data[x], key)
       } else {
-        if (key === x || moment(data[x], moment.ISO_8601, true).isValid()) {
+        if (key === x && moment(data[x], moment.ISO_8601, true).isValid()) {
           data[x] = new Date(data[x]);
         }
       }
