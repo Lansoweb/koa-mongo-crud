@@ -57,12 +57,12 @@ class CrudMapper {
       }
     });
 
-    const page = parseInt(params.page || 0);
-    let skip = pageSize * page;
+    const page = parseInt(params.page || 1);
+    let skip = (page - 1) * pageSize;
 
-    if (aggregateParam && page > 0) {
+    if (aggregateParam && page > 1) {
       let aux = pageSize;
-      pageSize = (page + 1) * pageSize;
+      pageSize = page * pageSize;
       skip = pageSize - aux;
     }
 
