@@ -70,17 +70,17 @@ class CrudMapper {
     if (aggregateParam) {
       list = await this.collection.aggregate().lookup(aggregateParam)
         .match(query)
+        .sort(sort)
         .limit(pageSize)
         .skip(skip)
-        .sort(sort)
         .toArray();
     } else {
       list = await this.collection
         .find(query)
         .project(project)
+        .sort(sort)
         .limit(pageSize)
         .skip(skip)
-        .sort(sort)
         .toArray();
     }
 
