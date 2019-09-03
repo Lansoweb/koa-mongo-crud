@@ -18,6 +18,7 @@ module.exports = function MongoQF(options) {
   this.keyRegex = opts.keyRegex || /^[a-zæøå0-9-_.]+$/i;
   this.valRegex = opts.valRegex || /[^a-zæøå0-9-_.* ]/i;
   this.arrRegex = opts.arrRegex || /^[a-zæøå0-9-_.]+(\[])?$/i;
+  this.objRegex = opts.objRegex || this.keyRegex;
 
   if (this.custom.bbox) {
     this.custom.bbox = this.customBBOX(this.custom.bbox);
@@ -263,12 +264,21 @@ module.exports.prototype.parse = function parse(query) {
       // array key
     } else if (val instanceof Array && !this.arrRegex.test(key)) {
       return;
+
+      // string key and object val
+    } else if (val instanceof Object && !this.objRegex.test(key)) {
+      return;
     }
 
     // custom functions
     if (typeof this.custom[key] === 'function') {
       this.custom[key].apply(null, [res, val]);
       return;
+    }
+
+    // object val
+    if (val instanceof Object) {
+      res[key] = val;
     }
 
     // array key
