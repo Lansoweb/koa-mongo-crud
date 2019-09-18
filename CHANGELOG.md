@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/Lansoweb/koa-mongo-crud/compare/1.2.1...1.2.2) (2019-09-18)
+
+
+### Bug Fixes
+
+* fix var typo ([7b8aa3f](https://github.com/Lansoweb/koa-mongo-crud/commit/7b8aa3f))
+
 ## [1.2.1](https://github.com/Lansoweb/koa-mongo-crud/compare/1.2.0...1.2.1) (2019-09-18)
 
 
