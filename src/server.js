@@ -12,7 +12,7 @@ module.exports = (config, callback) => {
   app.use(helmet());
   app.use(ResponseTimeMiddleware);
   app.use(ErrorMiddleware);
-  app.use(AuthMiddleware(config.auth, config.authAllowedRouted || []));
+  app.use(AuthMiddleware(config.auth, config.authAllowedRoutes || []));
 
   if (has(config, 'logging')) {
     app.logger = require('./infra/logger')(config.logging);
