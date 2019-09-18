@@ -1,10 +1,10 @@
+/* eslint-disable max-len */
 const crypto = require('crypto');
 const v1 = require('uuid/v1');
 const v4 = require('uuid/v4');
 const v5 = require('uuid/v5');
 
 function create(version = 4) {
-
   function generateId() {
     const raw = v1();
 
@@ -19,4 +19,6 @@ function create(version = 4) {
   return generateId;
 }
 
-module.exports = { v1, v4, v5, v4c: create(4), v6: create(6) };
+module.exports = {
+  v1, v4, v5, v4c: create(4), v6: create(6),
+};

@@ -1,8 +1,10 @@
+/* eslint-disable no-underscore-dangle */
+/* eslint-disable global-require */
 
-const DEFAULT_TRANSACTION_NAME = (method, path) => 'Koajs/' + (path[0] === '/' ? path.slice(1) : path) + '#' + method;
+const DEFAULT_TRANSACTION_NAME = (method, path) => `Koajs/${path[0] === '/' ? path.slice(1) : path}#${method}`;
 
 module.exports = async (ctx, next) => {
-
+  // eslint-disable-next-line import/no-unresolved
   const newrelic = require('newrelic');
 
   try {

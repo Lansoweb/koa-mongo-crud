@@ -7,6 +7,16 @@
   "author": "Leandro Silva <leandro@leandrosilva.info>",
   "license": "MIT",
   "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "/config",
+    "/src",
+    "/index.js",
+    "/package.json",
+    "/README.md"
+  ],
   "dependencies": {
     "ajv": "6.0.0",
     "basic-auth": "2.0.0",
@@ -14,11 +24,20 @@
     "http-status": "1.0.1",
     "koa": "2.4.1",
     "koa-helmet": "3.3.0",
+    "lodash.has": "^4.5.2",
     "log4js": "2.4.1",
     "moment": "^2.22.2",
     "mongodb": "2.2.34",
     "query-string": "5.0.1",
     "uuid": "3.1.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^8.1.0",
+    "@commitlint/config-conventional": "^8.1.0",
+    "eslint": "^6.2.1",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.18.2",
+    "husky": "^3.0.4"
   },
   "keywords": [
     "koa",
@@ -27,5 +46,36 @@
     "mongo",
     "mongodb",
     "api"
-  ]
+  ],
+  "scripts": {
+    "lint": "eslint *.js src/*.js src/**/*.js",
+    "lint-fix": "eslint --fix *.js src/*.js src/**/*.js"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "release": {
+    "tagFormat": "${version}",
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      "@semantic-release/github",
+      "@semantic-release/git"
+    ],
+    "preset": "angular"
+  }
 }

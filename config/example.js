@@ -7,14 +7,14 @@ const config = {
     uri: 'mongodb://uri',
     options: {
       socketTimeoutMS: 5000,
-    }
+    },
   },
   auth: [
     {
-      'identity': 'username',
-      'credential': 'password'
-    }
-  ]
+      identity: 'username',
+      credential: 'password',
+    },
+  ],
 };
 
 module.exports = config;

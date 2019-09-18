@@ -9,10 +9,10 @@ module.exports = async (ctx, next) => {
     }
     ctx.status = err.status || 500;
     ctx.body = {
-      type: 'https://httpstatuses.com/' + ctx.status,
+      type: `https://httpstatuses.com/${ctx.status}`,
       title: Status[ctx.status],
       status: ctx.status,
-      detail: err.message || err.errors
+      detail: err.message || err.errors,
     };
   }
 };

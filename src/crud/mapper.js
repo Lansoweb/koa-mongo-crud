@@ -1,24 +1,23 @@
 
 const hal = require('hal');
 const queryString = require('query-string');
+const moment = require('moment');
+const ajv = require('ajv')({
+  removeAdditional: true,
+  allErrors: true,
+});
 const ValidationException = require('./validation-exception');
 const DuplicationException = require('./duplication-exception');
 const Uuid = require('../infra/uuid');
 const MongoQF = require('./mongodb-query-filter');
-const moment = require('moment');
-const ajv = require('ajv')({
-  removeAdditional: true,
-  allErrors: true
-});
 
 class CrudMapper {
-
   constructor(db, schema, options = {}) {
     this.schema = schema;
     this.collectionName = options.collectionName || schema.collectionName;
     this.collection = db.collection(this.collectionName);
-    this.detailRoute = options.detailRoute || schema.name+'.detail';
-    this.listRoute = options.listRoute || schema.name+'.list';
+    this.detailRoute = options.detailRoute || `${schema.name}.detail`;
+    this.listRoute = options.listRoute || `${schema.name}.list`;
     this.pageSize = 25;
     this.queryFilter = createQueryFilter(schema);
 
@@ -27,8 +26,8 @@ class CrudMapper {
     }
   }
 
- async list(paramsOrig, aggregateParam) {
-    let params = JSON.parse(JSON.stringify(paramsOrig))
+  async list(paramsOrig, aggregateParam) {
+    const params = JSON.parse(JSON.stringify(paramsOrig));
 
     const withDeleted = params.deleted || params.disabled || false;
     const withCount = params._count || false;
@@ -50,7 +49,7 @@ class CrudMapper {
 
     params.fields = params.fields || '';
     const fields = params.fields.split(',');
-    let project = {};
+    const project = {};
     fields.forEach((field) => {
       if (field.length > 0) {
         project[field] = 1;
@@ -61,7 +60,7 @@ class CrudMapper {
     let skip = (page - 1) * pageSize;
 
     if (aggregateParam && page > 1) {
-      let aux = pageSize;
+      const aux = pageSize;
       pageSize = page * pageSize;
       skip = pageSize - aux;
     }
@@ -84,23 +83,22 @@ class CrudMapper {
         .toArray();
     }
 
-    let result = {
+    const result = {
       result: list,
-      page: page,
+      page,
     };
 
     if (withCount === '1' || withCount === 'true' || withCount === true) {
       const count = await this.collection.find(query).count();
-      result['count'] = count;
-      result['page_count'] = Math.ceil(count / list.length);
+      result.count = count;
+      result.page_count = Math.ceil(count / list.length);
     }
 
     return result;
   }
 
   async detail(id, withDeleted = false) {
-
-    let filter = { _id: id };
+    const filter = { _id: id };
 
     if (withDeleted === false) {
       filter.deleted = { $ne: true };
@@ -111,7 +109,7 @@ class CrudMapper {
 
   async create(post) {
     post = this.validateAll(post);
-    let data = this.toDatabase(post);
+    const data = this.toDatabase(post);
 
     await this.checkUniqueness(data);
 
@@ -126,17 +124,17 @@ class CrudMapper {
 
   async checkUniqueness(data, id = null) {
     if (this.schema.unique.length > 0) {
-      let orFilter = [];
+      const orFilter = [];
       this.schema.unique.forEach((key) => {
         if (data.hasOwnProperty(key)) {
           if (typeof data[key] === 'object') {
             data[key].forEach((value) => {
-              let obj = {};
+              const obj = {};
               obj[key] = value;
               orFilter.push(obj);
             });
           } else {
-            let obj = {};
+            const obj = {};
             obj[key] = data[key];
             orFilter.push(obj);
           }
@@ -145,15 +143,15 @@ class CrudMapper {
       if (orFilter.length === 0) {
         return;
       }
-      let filter = { $or: orFilter, deleted: { $ne: true } };
+      const filter = { $or: orFilter, deleted: { $ne: true } };
       if (id !== null) {
-        filter['_id'] = { $ne : id };
+        filter._id = { $ne: id };
       }
       const list = await this.collection.find(filter).toArray();
       if (list.length === 0) {
         return;
       }
-      let message = [];
+      const message = [];
       list.forEach((json) => {
         this.schema.unique.forEach((key) => {
           if (data.hasOwnProperty(key) && json.hasOwnProperty(key)) {
@@ -176,26 +174,25 @@ class CrudMapper {
   }
 
   async update(id, post, withDeleted = false) {
-
-    let filter = { _id: id };
+    const filter = { _id: id };
 
     if (withDeleted === false) {
       filter.deleted = { $ne: true };
     }
 
     post = this.validate(post);
-    let data = this.toDatabase(post);
+    const data = this.toDatabase(post);
 
     await this.checkUniqueness(data, id);
 
     data.updatedAt = new Date();
 
-    let update = {}
+    let update = {};
     if (data.deleted !== true) {
       delete data.deleted;
       delete data.deletedAt;
       delete data.deletedBy;
-      update = { $set: data, $unset: {deleted: "", deletedAt: "", deletedBy: ""} };
+      update = { $set: data, $unset: { deleted: '', deletedAt: '', deletedBy: '' } };
     } else {
       data.deleted = true;
       data.deletedAt = new Date();
@@ -210,10 +207,9 @@ class CrudMapper {
   }
 
   async delete(id, userId = null) {
-
-    let data = {
+    const data = {
       deleted: true,
-      deletedAt: new Date()
+      deletedAt: new Date(),
     };
     if (userId !== null) {
       data.deletedBy = userId;
@@ -222,7 +218,7 @@ class CrudMapper {
     const result = await this.collection.findOneAndUpdate(
       { _id: id, deleted: { $ne: true } },
       { $set: data },
-      { returnOriginal: false, upsert: false }
+      { returnOriginal: false, upsert: false },
     );
 
     if (result.ok !== 1) {
@@ -233,8 +229,7 @@ class CrudMapper {
   }
 
   async remove(id) {
-
-    let filter = { _id: id };
+    const filter = { _id: id };
 
     const result = await this.collection.findOneAndDelete(filter);
 
@@ -242,7 +237,7 @@ class CrudMapper {
   }
 
   toJson(data) {
-    let json = Object.assign({ id: data._id }, data);
+    const json = { id: data._id, ...data };
     delete json._id;
     if (json.deleted === false) {
       delete json.deleted;
@@ -253,7 +248,7 @@ class CrudMapper {
   }
 
   toHal(result, router) {
-    let json = this.toJson(result);
+    const json = this.toJson(result);
     if (result.deleted === true) {
       if (result.deletedAt) {
         json.deletedAt = result.deletedAt;
@@ -270,49 +265,48 @@ class CrudMapper {
   }
 
   toHalCollection(result, ctx) {
+    const entities = [];
 
-    let entities = [];
-
-    for (let i=0; i<result.result.length; i++) {
+    for (let i = 0; i < result.result.length; i++) {
       entities.push(this.toHal(result.result[i], ctx.router));
     }
 
-    let query = ctx.request.query;
+    const { query } = ctx.request;
 
     let collectionUrl = ctx.router.url(this.listRoute);
     if (queryString.stringify(query).length > 0) {
-      collectionUrl += '?' + queryString.stringify(query);
+      collectionUrl += `?${queryString.stringify(query)}`;
     }
 
-    let paginationData = {
+    const paginationData = {
       _page: result.page,
-      _count: entities.length
+      _count: entities.length,
     };
 
     if (result.hasOwnProperty('count')) {
-      paginationData['_total_items'] = result.count || 0;
+      paginationData._total_items = result.count || 0;
     }
     if (result.hasOwnProperty('page_count')) {
-      paginationData['_page_count'] = result.page_count || 1;
+      paginationData._page_count = result.page_count || 1;
     }
 
-    let collection = new hal.Resource(paginationData, collectionUrl);
+    const collection = new hal.Resource(paginationData, collectionUrl);
 
     if (result.page > 2) {
       query.page = 1;
-      collection.link('first', ctx.router.url(this.listRoute) + '?' + queryString.stringify(query));
+      collection.link('first', `${ctx.router.url(this.listRoute)}?${queryString.stringify(query)}`);
     }
     if (result.page > 1) {
       query.page = result.page - 1;
-      collection.link('prev', ctx.router.url(this.listRoute) +'?'+ queryString.stringify(query));
+      collection.link('prev', `${ctx.router.url(this.listRoute)}?${queryString.stringify(query)}`);
     }
 
     query.page = result.page + 1;
-    collection.link('next', ctx.router.url(this.listRoute) + '?' + queryString.stringify(query));
+    collection.link('next', `${ctx.router.url(this.listRoute)}?${queryString.stringify(query)}`);
 
     if (result.hasOwnProperty('page_count') && result.page < result.page_count - 1) {
       query.page = result.page_count;
-      collection.link('last', ctx.router.url(this.listRoute) +'?'+ queryString.stringify(query));
+      collection.link('last', `${ctx.router.url(this.listRoute)}?${queryString.stringify(query)}`);
     }
 
     collection.embed(this.collectionName, entities, false);
@@ -320,7 +314,7 @@ class CrudMapper {
   }
 
   toDatabase(entity) {
-    let data = entity;
+    const data = entity;
     if (data.hasOwnProperty('id')) {
       data._id = data.id;
       delete data.id;
@@ -332,17 +326,16 @@ class CrudMapper {
   }
 
   validate(data, validateAll = false) {
-
-    let schema = this.schema;
+    const { schema } = this;
     if (validateAll === false) {
       delete schema.required;
     }
 
-    schema.properties['deleted'] = { type: 'boolean', default: false};
-    schema.properties['deletedAt'] = { type: 'string', format: 'date-time'};
-    schema.properties['deletedBy'] = { type: ['string', 'null']};
+    schema.properties.deleted = { type: 'boolean', default: false };
+    schema.properties.deletedAt = { type: 'string', format: 'date-time' };
+    schema.properties.deletedBy = { type: ['string', 'null'] };
 
-    let valid = ajv.validate(schema, data);
+    const valid = ajv.validate(schema, data);
 
     if (!valid) {
       throw new ValidationException(ajv.errors);
@@ -352,7 +345,7 @@ class CrudMapper {
   }
 
   validateAll(data) {
-    return this.validate(data, true)
+    return this.validate(data, true);
   }
 
   static generateUuid() {
@@ -369,9 +362,9 @@ class CrudMapper {
    * @param {[type]} key  Data key name where Date type must be set on
    */
   setDates(data, key) {
-    for (let x in data) {      
-      if (typeof data[x] === "object") {
-        this.setDates(data[x], key)
+    for (const x in data) {
+      if (typeof data[x] === 'object') {
+        this.setDates(data[x], key);
       } else {
         const dateComparisonOperators = ['$gt', '$gte', '$lt', '$lte', '$ne', '$eq', '$in', '$nin'];
         if ((key === x || dateComparisonOperators.indexOf(x) > -1) && moment(data[x], moment.ISO_8601, true).isValid()) {
@@ -388,13 +381,11 @@ class CrudMapper {
    * @return {[type]}                  [description]
    */
   checkDates(schemaProperties, data) {
-    for (let k in schemaProperties) {
-      if (typeof schemaProperties[k] === "object" && schemaProperties[k].type && schemaProperties[k].type === 'array') {
+    for (const k in schemaProperties) {
+      if (typeof schemaProperties[k] === 'object' && schemaProperties[k].type && schemaProperties[k].type === 'array') {
         this.checkDates(schemaProperties[k].items.properties, data);
-      } else {
-        if (schemaProperties[k].instanceOf && schemaProperties[k].instanceOf === 'Date') {
-          this.setDates(data, k);
-        }
+      } else if (schemaProperties[k].instanceOf && schemaProperties[k].instanceOf === 'Date') {
+        this.setDates(data, k);
       }
     }
   }
@@ -404,7 +395,7 @@ function createQueryFilter(schema) {
   if (schema.hasOwnProperty('searchable') === false) {
     schema.searchable = Object.keys(schema.properties);
   }
-  let whitelist = {after:1, before: 1, between: 1};
+  const whitelist = { after: 1, before: 1, between: 1 };
   schema.searchable.forEach((key) => {
     whitelist[key] = 1;
   });
@@ -412,9 +403,9 @@ function createQueryFilter(schema) {
     custom: {
       between: 'updatedAt',
       after: 'updatedAt',
-      before: 'updatedAt'
+      before: 'updatedAt',
     },
-    whitelist: whitelist,
+    whitelist,
   });
 }
 

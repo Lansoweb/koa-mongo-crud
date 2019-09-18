@@ -1,4 +1,3 @@
-'use strict';
 
 module.exports = function MongoQF(options) {
   const opts = options || {};
@@ -44,7 +43,7 @@ module.exports = function MongoQF(options) {
   return this;
 };
 
-module.exports.prototype.customBBOX = field => (query, bbox) => {
+module.exports.prototype.customBBOX = (field) => (query, bbox) => {
   const bboxArr = bbox.split(',');
 
   if (bboxArr.length === 4) {
@@ -73,8 +72,8 @@ module.exports.prototype.customBBOX = field => (query, bbox) => {
   }
 };
 
-module.exports.prototype.customNear = field => (query, point) => {
-  const pointArr = point.split(',').map(p => parseFloat(p, 10));
+module.exports.prototype.customNear = (field) => (query, point) => {
+  const pointArr = point.split(',').map((p) => parseFloat(p, 10));
 
   if (pointArr.length >= 2) {
     if (!isNaN(pointArr.reduce((a, b) => a + b))) {
@@ -114,16 +113,16 @@ function parseDate(value) {
   return new Date(date);
 }
 
-module.exports.prototype.customAfter = field => (query, value) => {
+module.exports.prototype.customAfter = (field) => (query, value) => {
   const date = parseDate(value);
   if (date.toString() !== 'Invalid Date') {
     query[field] = {
-      $gte: date
+      $gte: date,
     };
   }
 };
 
-module.exports.prototype.customBefore = field => (query, value) => {
+module.exports.prototype.customBefore = (field) => (query, value) => {
   const date = parseDate(value);
 
   if (date.toString() !== 'Invalid Date') {
@@ -133,7 +132,7 @@ module.exports.prototype.customBefore = field => (query, value) => {
   }
 };
 
-module.exports.prototype.customBetween = field => (query, value) => {
+module.exports.prototype.customBetween = (field) => (query, value) => {
   const dates = value.split('|');
   const afterValue = dates[0];
   const beforeValue = dates[1];
@@ -144,7 +143,7 @@ module.exports.prototype.customBetween = field => (query, value) => {
   if (after.toString() !== 'Invalid Date' && before.toString() !== 'Invalid Date') {
     query[field] = {
       $gte: after,
-      $lt: before
+      $lt: before,
     };
   }
 };
@@ -220,10 +219,10 @@ module.exports.prototype.parseString = function parseString(string, array) {
 module.exports.prototype.parseStringVal = function parseStringVal(string) {
   if (this.string.toBoolean && string.toLowerCase() === 'true') {
     return true;
-  } else if (this.string.toBoolean && string.toLowerCase() === 'false') {
+  } if (this.string.toBoolean && string.toLowerCase() === 'false') {
     return false;
-  } else if (this.string.toNumber && !isNaN(parseInt(string, 10)) &&
-    ((+string - +string) + 1) >= 0) {
+  } if (this.string.toNumber && !isNaN(parseInt(string, 10))
+    && ((+string - +string) + 1) >= 0) {
     return parseFloat(string, 10);
   }
 
@@ -262,11 +261,11 @@ module.exports.prototype.parse = function parse(query) {
       return;
 
       // array key
-    } else if (val instanceof Array && !this.arrRegex.test(key)) {
+    } if (val instanceof Array && !this.arrRegex.test(key)) {
       return;
 
       // string key and object val
-    } else if (val instanceof Object && !this.objRegex.test(key)) {
+    } if (val instanceof Object && !this.objRegex.test(key)) {
       return;
     }
 

@@ -1,0 +1,14 @@
+{
+	"extends": "airbnb-base",
+	"parserOptions": {
+		"ecmaVersion": 2018
+	},
+	"rules": {
+		"require-jsdoc": "off",
+		"no-underscore-dangle": ["error", { "allow": ["_id"] }],
+		"max-len": ["error", { "code": 120 }]
+	},
+	"globals": {
+		"logger": false
+	}
+}
