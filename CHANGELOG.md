@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/Lansoweb/koa-mongo-crud/compare/1.2.0...1.2.1) (2019-09-18)
+
+
+### Bug Fixes
+
+* remove package-lock.json ([c198dc1](https://github.com/Lansoweb/koa-mongo-crud/commit/c198dc1))
+
 # [1.2.0](https://github.com/Lansoweb/koa-mongo-crud/compare/1.1.20...1.2.0) (2019-09-18)
 
 
