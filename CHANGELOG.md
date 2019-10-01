@@ -1,3 +1,11 @@
+## [1.2.3](https://github.com/Lansoweb/koa-mongo-crud/compare/1.2.2...1.2.3) (2019-10-01)
+
+
+### Bug Fixes
+
+* **auth:** change to request path in allowed routes ([4425453](https://github.com/Lansoweb/koa-mongo-crud/commit/4425453))
+* **auth.js:** fix allowed routes in url with query string ([0b8a1bc](https://github.com/Lansoweb/koa-mongo-crud/commit/0b8a1bc))
+
 ## [1.2.2](https://github.com/Lansoweb/koa-mongo-crud/compare/1.2.1...1.2.2) (2019-09-18)
 
 
