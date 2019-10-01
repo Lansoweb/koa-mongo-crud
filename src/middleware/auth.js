@@ -2,10 +2,7 @@
 const auth = require('basic-auth');
 
 module.exports = (config, allowedRoutes = []) => async (ctx, next) => {
-  const url = ctx.request.url.indexOf('?') !== -1 ? ctx.request.url.indexOf('?') : ctx.request.url.length;
-  const route = ctx.request.url.substring(url, -1);
-
-  if (config.length === 0 || allowedRoutes.indexOf(route) >= 0) {
+  if (config.length === 0 || allowedRoutes.indexOf(ctx.request.path) >= 0) {
     return next();
   }
 
