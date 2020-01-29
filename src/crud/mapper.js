@@ -91,7 +91,7 @@ class CrudMapper {
     if (withCount === '1' || withCount === 'true' || withCount === true) {
       const count = await this.collection.find(query).count();
       result.count = count;
-      result.page_count = Math.ceil(count / list.length);
+      result.page_count = Math.ceil(count / params.pageSize);
     }
 
     return result;
