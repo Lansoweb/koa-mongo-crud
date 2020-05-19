@@ -31,7 +31,7 @@ class CrudMapper {
 
     const withDeleted = params.deleted || params.disabled || false;
     const withCount = params._count || false;
-    let pageSize = parseInt(params._pageSize || this.pageSize);
+    let pageSize = parseInt(params._pageSize || params.pageSize || this.pageSize);
     const sortBy = params.sort || 'createdAt';
     const orderBy = parseInt(params.order || -1);
     const sort = {};
@@ -91,7 +91,7 @@ class CrudMapper {
     if (withCount === '1' || withCount === 'true' || withCount === true) {
       const count = await this.collection.find(query).count();
       result.count = count;
-      result.page_count = Math.ceil(count / params.pageSize);
+      result.page_count = Math.ceil(count / pageSize);
     }
 
     return result;
