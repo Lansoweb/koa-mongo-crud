@@ -368,7 +368,7 @@ class CrudMapper {
       } else {
         const dateComparisonOperators = ['$gt', '$gte', '$lt', '$lte', '$ne', '$eq', '$in', '$nin'];
         if ((key === x || dateComparisonOperators.indexOf(x) > -1) && moment(data[x], moment.ISO_8601, true).isValid()) {
-          data[x] = new Date(data[x]);
+          data[x] = moment.utc(data[x]).toDate();
         }
       }
     }
