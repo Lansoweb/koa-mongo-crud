@@ -22,7 +22,7 @@ module.exports = (config, callback) => {
     app.db = connection.db(config.db.dbName);
 
     if (typeof callback === 'function') {
-      return callback(app);
+      callback(app);
     }
 
     const server = app.listen(config.web.port || 3000, () => {
