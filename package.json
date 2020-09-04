@@ -27,7 +27,7 @@
     "lodash.has": "^4.5.2",
     "log4js": "2.4.1",
     "moment": "^2.22.2",
-    "mongodb": "2.2.34",
+    "mongodb": "3.6.1",
     "query-string": "5.0.1",
     "uuid": "3.1.0"
   },
