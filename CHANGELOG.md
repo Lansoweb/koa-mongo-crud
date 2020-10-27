@@ -1,3 +1,10 @@
+## [1.2.8](https://github.com/Lansoweb/koa-mongo-crud/compare/1.2.7...1.2.8) (2020-10-27)
+
+
+### Bug Fixes
+
+* remove lock ([113eef6](https://github.com/Lansoweb/koa-mongo-crud/commit/113eef6c4c91d92d908b85965b0f06133930e5aa))
+
 ## [1.2.7](https://github.com/Lansoweb/koa-mongo-crud/compare/1.2.6...1.2.7) (2020-10-27)
 
 
