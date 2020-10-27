@@ -1,3 +1,10 @@
+## [1.2.7](https://github.com/Lansoweb/koa-mongo-crud/compare/1.2.6...1.2.7) (2020-10-27)
+
+
+### Bug Fixes
+
+* validate uuid ([4c52f2d](https://github.com/Lansoweb/koa-mongo-crud/commit/4c52f2de99700b05e44aecc04ecba07994a12098))
+
 ## [1.2.3](https://github.com/Lansoweb/koa-mongo-crud/compare/1.2.2...1.2.3) (2019-10-01)
 
 
