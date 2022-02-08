@@ -1,4 +1,3 @@
-
 module.exports = function MongoQF(options) {
   const opts = options || {};
 
@@ -53,7 +52,8 @@ module.exports.prototype.customBBOX = (field) => (query, bbox) => {
     bboxArr[2] = parseFloat(bboxArr[2], 10);
     bboxArr[3] = parseFloat(bboxArr[3], 10);
 
-    if (!isNaN(bboxArr.reduce((a, b) => a + b))) {
+    if (!Number.isNaN(bboxArr.reduce((a, b) => a + b))) {
+      // eslint-disable-next-line no-param-reassign
       query[field] = {
         $geoWithin: {
           $geometry: {
@@ -76,10 +76,11 @@ module.exports.prototype.customNear = (field) => (query, point) => {
   const pointArr = point.split(',').map((p) => parseFloat(p, 10));
 
   if (pointArr.length >= 2) {
-    if (!isNaN(pointArr.reduce((a, b) => a + b))) {
+    if (!Number.isNaN(pointArr.reduce((a, b) => a + b))) {
       const max = pointArr[2];
       const min = pointArr[3];
 
+      // eslint-disable-next-line no-param-reassign
       query[field] = {
         $near: {
           $geometry: {
@@ -89,10 +90,12 @@ module.exports.prototype.customNear = (field) => (query, point) => {
         },
       };
 
-      if (!isNaN(max)) {
+      if (!Number.isNaN(max)) {
+        // eslint-disable-next-line no-param-reassign
         query[field].$near.$maxDistance = max;
 
-        if (!isNaN(min)) {
+        if (!Number.isNaN(min)) {
+          // eslint-disable-next-line no-param-reassign
           query[field].$near.$minDistance = min;
         }
       }
@@ -103,7 +106,7 @@ module.exports.prototype.customNear = (field) => (query, point) => {
 function parseDate(value) {
   let date = value;
 
-  if (!isNaN(date)) {
+  if (!Number.isNaN(date)) {
     if (`${date}`.length === 10) {
       date = `${date}000`;
     }
@@ -116,6 +119,7 @@ function parseDate(value) {
 module.exports.prototype.customAfter = (field) => (query, value) => {
   const date = parseDate(value);
   if (date.toString() !== 'Invalid Date') {
+    // eslint-disable-next-line no-param-reassign
     query[field] = {
       $gte: date,
     };
@@ -126,6 +130,7 @@ module.exports.prototype.customBefore = (field) => (query, value) => {
   const date = parseDate(value);
 
   if (date.toString() !== 'Invalid Date') {
+    // eslint-disable-next-line no-param-reassign
     query[field] = {
       $lt: date,
     };
@@ -141,6 +146,7 @@ module.exports.prototype.customBetween = (field) => (query, value) => {
   const before = parseDate(beforeValue);
 
   if (after.toString() !== 'Invalid Date' && before.toString() !== 'Invalid Date') {
+    // eslint-disable-next-line no-param-reassign
     query[field] = {
       $gte: after,
       $lt: before,
@@ -192,8 +198,10 @@ module.exports.prototype.parseString = function parseString(string, array) {
       }
       break;
     default:
-      ret.org = org = op + org;
-      ret.op = op = '';
+      org = op + org;
+      op = '';
+      ret.org = org;
+      ret.op = '';
       ret.value = this.parseStringVal(org);
 
       if (array) {
@@ -221,7 +229,7 @@ module.exports.prototype.parseStringVal = function parseStringVal(string) {
     return true;
   } if (this.string.toBoolean && string.toLowerCase() === 'false') {
     return false;
-  } if (this.string.toNumber && !isNaN(parseInt(string, 10))
+  } if (this.string.toNumber && !Number.isNaN(parseInt(string, 10))
     && ((+string - +string) + 1) >= 0) {
     return parseFloat(string, 10);
   }

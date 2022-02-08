@@ -5,7 +5,7 @@
 	},
 	"rules": {
 		"require-jsdoc": "off",
-		"no-underscore-dangle": ["error", { "allow": ["_id"] }],
+		"no-underscore-dangle": ["error", { "allow": ["_id", "_count", "_pageSize", "_total_items", "_page_count"] }],
 		"max-len": ["error", { "code": 120 }]
 	},
 	"globals": {

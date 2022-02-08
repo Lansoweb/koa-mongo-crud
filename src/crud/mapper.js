@@ -11,6 +11,25 @@ const DuplicationException = require('./duplication-exception');
 const Uuid = require('../infra/uuid');
 const MongoQF = require('./mongodb-query-filter');
 
+function createQueryFilter(schema) {
+  if (Object.prototype.hasOwnProperty.call(schema, 'searchable') === false) {
+    // eslint-disable-next-line no-param-reassign
+    schema.searchable = Object.keys(schema.properties);
+  }
+  const whitelist = { after: 1, before: 1, between: 1 };
+  schema.searchable.forEach((key) => {
+    whitelist[key] = 1;
+  });
+  return new MongoQF({
+    custom: {
+      between: 'updatedAt',
+      after: 'updatedAt',
+      before: 'updatedAt',
+    },
+    whitelist,
+  });
+}
+
 class CrudMapper {
   constructor(db, schema, options = {}) {
     this.schema = schema;
@@ -21,7 +40,7 @@ class CrudMapper {
     this.pageSize = 25;
     this.queryFilter = createQueryFilter(schema);
 
-    if (this.schema.hasOwnProperty('unique') === false) {
+    if (Object.prototype.hasOwnProperty.call(this.schema, 'unique') === false) {
       this.schema.unique = [];
     }
   }
@@ -31,9 +50,9 @@ class CrudMapper {
 
     const withDeleted = params.deleted || params.disabled || false;
     const withCount = params._count || false;
-    let pageSize = parseInt(params._pageSize || params.pageSize || this.pageSize);
+    let pageSize = parseInt(params._pageSize || params.pageSize || this.pageSize, 10);
     const sortBy = params.sort || 'createdAt';
-    const orderBy = parseInt(params.order || -1);
+    const orderBy = parseInt(params.order || -1, 10);
     const sort = {};
     sort[sortBy] = orderBy;
 
@@ -56,12 +75,12 @@ class CrudMapper {
       }
     });
 
-    const page = parseInt(params.page || 1);
+    const page = parseInt(params.page || 1, 10);
     let skip = (page - 1) * pageSize;
 
     if (aggregateParam && page > 1) {
       const aux = pageSize;
-      pageSize = page * pageSize;
+      pageSize *= page;
       skip = pageSize - aux;
     }
 
@@ -104,12 +123,12 @@ class CrudMapper {
       filter.deleted = { $ne: true };
     }
 
-    return await this.collection.findOne(filter);
+    return this.collection.findOne(filter);
   }
 
   async create(post) {
-    post = this.validateAll(post);
-    const data = this.toDatabase(post);
+    const validated = this.validateAll(post);
+    const data = this.toDatabase(validated);
 
     await this.checkUniqueness(data);
 
@@ -126,7 +145,7 @@ class CrudMapper {
     if (this.schema.unique.length > 0) {
       const orFilter = [];
       this.schema.unique.forEach((key) => {
-        if (data.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) {
           if (typeof data[key] === 'object') {
             data[key].forEach((value) => {
               const obj = {};
@@ -154,7 +173,7 @@ class CrudMapper {
       const message = [];
       list.forEach((json) => {
         this.schema.unique.forEach((key) => {
-          if (data.hasOwnProperty(key) && json.hasOwnProperty(key)) {
+          if (Object.prototype.hasOwnProperty.call(data, key) && Object.prototype.hasOwnProperty.call(json, key)) {
             if (typeof data[key] === 'object') {
               data[key].forEach((dataValue) => {
                 json[key].forEach((jsonValue) => {
@@ -180,8 +199,8 @@ class CrudMapper {
       filter.deleted = { $ne: true };
     }
 
-    post = this.validate(post);
-    const data = this.toDatabase(post);
+    const validated = this.validate(post);
+    const data = this.toDatabase(validated);
 
     await this.checkUniqueness(data, id);
 
@@ -236,7 +255,7 @@ class CrudMapper {
     return result.ok === 1;
   }
 
-  toJson(data) {
+  static toJson(data) {
     const json = { id: data._id, ...data };
     delete json._id;
     if (json.deleted === false) {
@@ -248,7 +267,7 @@ class CrudMapper {
   }
 
   toHal(result, router) {
-    const json = this.toJson(result);
+    const json = CrudMapper.toJson(result);
     if (result.deleted === true) {
       if (result.deletedAt) {
         json.deletedAt = result.deletedAt;
@@ -267,7 +286,7 @@ class CrudMapper {
   toHalCollection(result, ctx) {
     const entities = [];
 
-    for (let i = 0; i < result.result.length; i++) {
+    for (let i = 0; i < result.result.length; i += 1) {
       entities.push(this.toHal(result.result[i], ctx.router));
     }
 
@@ -283,10 +302,10 @@ class CrudMapper {
       _count: entities.length,
     };
 
-    if (result.hasOwnProperty('count')) {
+    if (Object.prototype.hasOwnProperty.call(result, 'count')) {
       paginationData._total_items = result.count || 0;
     }
-    if (result.hasOwnProperty('page_count')) {
+    if (Object.prototype.hasOwnProperty.call(result, 'page_count')) {
       paginationData._page_count = result.page_count || 1;
     }
 
@@ -304,7 +323,7 @@ class CrudMapper {
     query.page = result.page + 1;
     collection.link('next', `${ctx.router.url(this.listRoute)}?${queryString.stringify(query)}`);
 
-    if (result.hasOwnProperty('page_count') && result.page < result.page_count - 1) {
+    if (Object.prototype.hasOwnProperty.call(result, 'page_count') && result.page < result.page_count - 1) {
       query.page = result.page_count;
       collection.link('last', `${ctx.router.url(this.listRoute)}?${queryString.stringify(query)}`);
     }
@@ -315,7 +334,7 @@ class CrudMapper {
 
   toDatabase(entity) {
     const data = entity;
-    if (data.hasOwnProperty('id')) {
+    if (Object.prototype.hasOwnProperty.call(data, 'id')) {
       data._id = data.id;
       delete data.id;
     }
@@ -352,7 +371,7 @@ class CrudMapper {
     return Uuid.v4c();
   }
 
-  getUUID() {
+  static getUUID() {
     return CrudMapper.generateUuid();
   }
 
@@ -362,16 +381,18 @@ class CrudMapper {
    * @param {[type]} key  Data key name where Date type must be set on
    */
   setDates(data, key) {
-    for (const x in data) {
+    Object.keys(data).forEach((x) => {
       if (typeof data[x] === 'object') {
         this.setDates(data[x], key);
       } else {
         const dateComparisonOperators = ['$gt', '$gte', '$lt', '$lte', '$ne', '$eq', '$in', '$nin'];
-        if ((key === x || dateComparisonOperators.indexOf(x) > -1) && moment(data[x], moment.ISO_8601, true).isValid()) {
+        if ((key === x || dateComparisonOperators.indexOf(x) > -1)
+          && moment(data[x], moment.ISO_8601, true).isValid()) {
+          // eslint-disable-next-line no-param-reassign
           data[x] = new Date(data[x]);
         }
       }
-    }
+    });
   }
 
   /**
@@ -381,32 +402,14 @@ class CrudMapper {
    * @return {[type]}                  [description]
    */
   checkDates(schemaProperties, data) {
-    for (const k in schemaProperties) {
+    Object.keys(schemaProperties).forEach((k) => {
       if (typeof schemaProperties[k] === 'object' && schemaProperties[k].type && schemaProperties[k].type === 'array') {
         this.checkDates(schemaProperties[k].items.properties, data);
       } else if (schemaProperties[k].instanceOf && schemaProperties[k].instanceOf === 'Date') {
         this.setDates(data, k);
       }
-    }
+    });
   }
-}
-
-function createQueryFilter(schema) {
-  if (schema.hasOwnProperty('searchable') === false) {
-    schema.searchable = Object.keys(schema.properties);
-  }
-  const whitelist = { after: 1, before: 1, between: 1 };
-  schema.searchable.forEach((key) => {
-    whitelist[key] = 1;
-  });
-  return new MongoQF({
-    custom: {
-      between: 'updatedAt',
-      after: 'updatedAt',
-      before: 'updatedAt',
-    },
-    whitelist,
-  });
 }
 
 module.exports = CrudMapper;

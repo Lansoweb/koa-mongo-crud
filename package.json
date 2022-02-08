@@ -7,6 +7,9 @@
   "author": "Leandro Silva <leandro@leandrosilva.info>",
   "license": "MIT",
   "private": false,
+  "engines": {
+    "node": ">=12.21"
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -25,19 +28,19 @@
     "koa": "2.4.1",
     "koa-helmet": "3.3.0",
     "lodash.has": "^4.5.2",
-    "log4js": "2.4.1",
+    "log4js": "^6.4.1",
     "moment": "^2.22.2",
-    "mongodb": "2.2.34",
+    "mongodb": "^4.3.1",
     "query-string": "5.0.1",
     "uuid": "^8.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.3",
     "@babel/preset-env": "^7.12.1",
-    "@commitlint/cli": "^8.1.0",
-    "@commitlint/config-conventional": "^8.1.0",
+    "@commitlint/cli": "^16.1.0",
+    "@commitlint/config-conventional": "^16.0.0",
     "babel-jest": "^26.6.1",
-    "eslint": "^6.2.1",
+    "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.18.2",
     "husky": "^3.0.4",
