@@ -404,7 +404,7 @@ class CrudMapper {
   checkDates(schemaProperties, data) {
     Object.keys(schemaProperties).forEach((k) => {
       if (typeof schemaProperties[k] === 'object' && schemaProperties[k].type && schemaProperties[k].type === 'array') {
-        this.checkDates(schemaProperties[k].items.properties, data);
+        this.checkDates(schemaProperties[k].items.properties || {}, data);
       } else if (schemaProperties[k].instanceOf && schemaProperties[k].instanceOf === 'Date') {
         this.setDates(data, k);
       }
