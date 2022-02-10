@@ -11,4 +11,5 @@ module.exports = {
   ApiServer: require('./src/server'),
   Uuid: require('./src/infra/uuid'),
   MongoQF: require('./src/crud/mongodb-query-filter'),
+  MongoDB: require('./src/infra/mongo'),
 };
